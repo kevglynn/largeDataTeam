@@ -132,7 +132,7 @@ def main(argv):
     sub_label_rdd = sc.textFile(PATH_TO_SUB_LABELS).filter(lambda x: 'file' not in x).map(lambda x: parse_input(x)).map(lambda x: json.dumps(x)).repartition(1).saveAsTextFile('/user/alexeys/KaggleDato/sampleSub_csv_json/')
 
     nbuckets = 5   
-    for bucket in range(1,nbuckets):
+    for bucket in range(nbuckets):
         for section in range(1,10):
             print "Processing bucket ",bucket," section ", section
             fIn_rdd = sc.wholeTextFiles("/user/alexeys/KaggleDato/"+str(bucket)+"/"+str(section)+"*_raw_html.txt",12).map(parse_page_rdd).map(lambda x: json.dumps(x))
