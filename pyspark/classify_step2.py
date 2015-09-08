@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+#Original: Alexey Svyatkovskiy
+
 from pyspark import SparkContext
 from pyspark.storagelevel import StorageLevel
 from pyspark.sql import SQLContext
