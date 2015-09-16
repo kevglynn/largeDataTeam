@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#Original: Data starter solution
+#Original: Dato starter solution
 #Modified: Alexey Svyatkovskiy
 
 from pyspark import SparkContext
@@ -17,7 +17,7 @@ import re
 def clean_text(text_as_list):
     #map(lambda x: re.sub(' +',' ',x),text_as_list)
     text_as_string = " ".join(text_as_list)
-    text_as_string = text_as_string.encode("utf8").translate(None,'@&$/%?<>,[]{}()*.0123456789:;-\n\'"_').lower()
+    text_as_string = text_as_string.encode("utf8").translate(None,'=@&$/%?<>,[]{}()*.0123456789:;-\n\'"_').lower()
     text_as_string = re.sub(' +',' ',text_as_string)
 
     return text_as_string
@@ -52,17 +52,22 @@ def parse_text(soup):
             - could soup.get_text() instead but the output is more noisy """
     textdata = ['']
 
+    for tag in soup.find_all("div", {"class":"text"}):
+        try:
+           textdata.append(tag.text.encode('ascii','ignore').strip())
+        except Exception:
+           continue
+
     for text in soup.find_all('p'):
         try:
             textdata.append(text.text.encode('ascii','ignore').strip())
         except Exception:
             continue
 
-    #return filter(None,textdata)
-    textdata = filter(None,textdata)
     #FIXME if you need to clean it
-    textdata = clean_text(textdata)
-    return textdata
+    #textdata = filter(None,textdata)
+    #textdata = clean_text(textdata)
+    return filter(None,textdata)
 
 def parse_title(soup):
     """ parameters:
@@ -95,8 +100,8 @@ def parse_links(soup):
         except Exception:
             continue
 
-    #return filter(None,linkdata)
-    return len(filter(None,linkdata))
+    #return len(filter(None,linkdata))
+    return filter(None,linkdata)
 
 
 def parse_images(soup):
@@ -112,8 +117,8 @@ def parse_images(soup):
         except Exception:
             continue
 
-    #return filter(None,imagesdata)
-    return len(filter(None,imagesdata))
+    #return len(filter(None,imagesdata))
+    return filter(None,imagesdata)
 
 
 def parse_input(x_rdd):
@@ -126,12 +131,12 @@ def main(argv):
     sc = SparkContext(appName="KaggleDato")
 
     #parse labels as JSON
-    PATH_TO_TRAIN_LABELS = "/user/alexeys/KaggleDato/train.csv"
-    PATH_TO_SUB_LABELS = "/user/alexeys/KaggleDato/sampleSubmission.csv"
+    PATH_TO_TRAIN_LABELS = "/user/alexeys/KaggleDato/train_v2.csv"
+    PATH_TO_SUB_LABELS = "/user/alexeys/KaggleDato/sampleSubmission_v2.csv"
     train_label_rdd = sc.textFile(PATH_TO_TRAIN_LABELS).filter(lambda x: 'file' not in x).map(lambda x: parse_input(x)).map(lambda x: json.dumps(x)).repartition(1).saveAsTextFile('/user/alexeys/KaggleDato/train_csv_json')
     sub_label_rdd = sc.textFile(PATH_TO_SUB_LABELS).filter(lambda x: 'file' not in x).map(lambda x: parse_input(x)).map(lambda x: json.dumps(x)).repartition(1).saveAsTextFile('/user/alexeys/KaggleDato/sampleSub_csv_json/')
 
-    nbuckets = 5   
+    nbuckets =  6   
     for bucket in range(nbuckets):
         for section in range(1,10):
             print "Processing bucket ",bucket," section ", section
